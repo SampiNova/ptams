@@ -3,11 +3,24 @@ import numpy as np
 from sklearn.datasets import fetch_california_housing
 import scipy.stats as st
 
-housing = fetch_california_housing(as_frame=True)
-data = housing.data
-target = housing.target
+df = pd.read_csv("House_Price.csv")
 
-df = pd.DataFrame(data, columns=housing.feature_names)
+target = pd.DataFrame(df["price"])
+df.drop("price", axis=1, inplace=True)
+df.drop("bus_ter", axis=1, inplace=True)
+
+waterbody_encoded = pd.get_dummies(df["waterbody"], "waterboody")
+df.drop("waterbody", axis=1, inplace=True)
+
+df = pd.concat([df, waterbody_encoded], axis=1)
+df["airport"] = df["airport"].map({"YES": 1, "NO": 0})
+
+df = df.astype(np.float64)
+
+df["n_hos_beds"] = df["n_hos_beds"].fillna(df["n_hos_beds"].mean())
+
+'''for name in df.columns:
+    print(name, np.any(np.isnan(df[name])))'''
 
 correlation_matrix = df.corr()
 
@@ -25,7 +38,7 @@ def prepXY(X, Y):
     X = np.hstack((ones_column, X))
 
     Y = np.asarray(Y)
-    Y = np.expand_dims(Y, 0).T
+    #Y = np.expand_dims(Y, 0).T
 
     return X, Y
 
@@ -44,8 +57,10 @@ def pred(inpX, beta, eps):
     return inpX @ beta + eps
 
 
+deleted_columns = []
 myX, myY = prepXY(df, target)
 while True:
+    print("=================================================")
     b, e, s = fit(myX, myY)
     print("Оценка дисперсии ошибок:", s)
 
@@ -70,7 +85,13 @@ while True:
     if not np.all(p_values < 0.05):
         idx = np.argmax(p_values)
         print(f"Удаляем {df.columns[idx]}")
+        deleted_columns.append(df.columns[idx])
         df = df.drop(df.columns[idx], axis=1)
         myX, myY = prepXY(df, target)
     else:
         break
+
+
+print("-------------------------------")
+print("Deleted:", deleted_columns)
+print(df)
