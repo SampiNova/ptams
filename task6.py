@@ -94,4 +94,6 @@ while True:
 
 print("-------------------------------")
 print("Deleted:", deleted_columns)
+df = pd.concat([target, df], axis=1)
 print(df)
+df.to_csv('New_House_Price.csv', index=False)
