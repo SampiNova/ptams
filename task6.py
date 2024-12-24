@@ -1,6 +1,5 @@
 import pandas as pd
 import numpy as np
-from sklearn.datasets import fetch_california_housing
 import scipy.stats as st
 
 df = pd.read_csv("House_Price.csv")
